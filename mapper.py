@@ -1,3 +1,4 @@
+# Version 10.0
 import streamlit as st
 import pandas as pd
 import folium
@@ -90,3 +91,4 @@ if st.sidebar.button("🗑️ Reset Day"):
     if os.path.exists(SAVED_DATA): os.remove(SAVED_DATA)
     st.session_state.clear()
     st.rerun()
+
