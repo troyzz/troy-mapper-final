@@ -249,21 +249,23 @@ if st.session_state.selected_id:
     with st.sidebar.expander("📋 VIEW FIELD NOTES", expanded=True):
         st.write(sel_row['Notes'])
 
-# --- 7. EXPORT ---
+# --- 6. TIMESTAMPED EXPORT ---
 st.sidebar.markdown("---")
 if st.session_state.all_photos:
+    now = datetime.now().strftime("%b-%d_%H-%M")
     buf = BytesIO()
     with zipfile.ZipFile(buf, "w") as z:
         for tid, file_list in st.session_state.all_photos.items():
             for i, f in enumerate(file_list):
                 z.writestr(f"Ticket_{tid}_Photo_{i}.jpg", f.getvalue())
     
-    st.sidebar.download_button("📂 Download Photos (ZIP)", data=buf.getvalue(), file_name="field_photos.zip", mime="application/zip", use_container_width=True)
+    st.sidebar.download_button(f"📂 Download ZIP ({now})", data=buf.getvalue(), file_name=f"field_photos_{now}.zip", mime="application/zip", use_container_width=True)
 
 if st.sidebar.button("🗑️ RESET ALL DATA"):
     if os.path.exists(SAVED_DATA): os.remove(SAVED_DATA)
     st.session_state.clear()
     st.rerun()
+
 
 
 
