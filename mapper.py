@@ -1,4 +1,5 @@
 # Version 10.0
+import base64  # <--- Add this at the very top!
 import streamlit as st
 import pandas as pd
 import folium
@@ -21,19 +22,22 @@ SAVED_DATA = "field_log.csv"
 # ⚠️ PASTE YOUR FOLDER ID HERE ⚠️
 FOLDER_ID = "1x1qYp-qT3849DUAxLi5msViHcBecT-NA" 
 
-# Connect to Google Drive using the Secrets
+# ... inside your try block ...
 try:
     if "gcp_service_account" in st.secrets:
-        # Step 1: Convert AttrDict to a plain Dictionary
         info = dict(st.secrets["gcp_service_account"])
         
-        # Step 2: Use credentials exactly as they are in the box
+        # This is the magic part: Decodes the flat string back into a real key
+        if "private_key_b64" in info:
+            decoded_bytes = base64.b64decode(info["private_key_b64"])
+            info["private_key"] = decoded_bytes.decode("utf-8")
+        
         creds = service_account.Credentials.from_service_account_info(info)
         drive_service = build('drive', 'v3', credentials=creds)
     else:
         st.error("Google Secrets not found.")
 except Exception as e:
-    st.error(f"Authentication Error: {e}")
+    st.error(f"Authentication Error: {e}"
 
 def upload_to_drive(file_content, file_name, folder_id):
     try:
@@ -169,6 +173,7 @@ if st.sidebar.button("🗑️ RESET ALL DATA"):
     if os.path.exists(SAVED_DATA): os.remove(SAVED_DATA)
     st.session_state.clear()
     st.rerun()
+
 
 
 
