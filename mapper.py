@@ -24,16 +24,20 @@ FOLDER_ID = "1x1qYp-qT3849DUAxLi5msViHcBecT-NA"
 # Connect to Google Drive using the Secrets
 try:
     if "gcp_service_account" in st.secrets:
-        # 1. Get the raw text
-        raw_json = st.secrets["gcp_service_account"]
+        # 1. Get the raw string
+        raw_info = st.secrets["gcp_service_account"]
         
-        # 2. 'strict=False' allows the code to handle the line breaks in your key
-        info = json.loads(raw_json, strict=False)
+        # 2. SURGICAL CLEAN: This removes the literal backslashes that confuse JSON
+        # It turns the text "on the page" into the data "in memory"
+        clean_info = raw_info.encode('utf-8').decode('unicode_escape')
         
-        # 3. Clean up the private key formatting just in case
+        # 3. Load the dictionary
+        info = json.loads(clean_info, strict=False)
+        
+        # 4. Final safety check for the private key formatting
         if "private_key" in info:
-            info["private_key"] = info["private_key"].replace('\\n', '\n')
-        
+            info["private_key"] = info["private_key"].replace('\\n', '\n').replace('\n', '\n')
+            
         creds = service_account.Credentials.from_service_account_info(info)
         drive_service = build('drive', 'v3', credentials=creds)
     else:
@@ -175,6 +179,7 @@ if st.sidebar.button("🗑️ RESET ALL DATA"):
     if os.path.exists(SAVED_DATA): os.remove(SAVED_DATA)
     st.session_state.clear()
     st.rerun()
+
 
 
 
