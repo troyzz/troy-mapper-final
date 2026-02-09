@@ -24,16 +24,14 @@ FOLDER_ID = "1x1qYp-qT3849DUAxLi5msViHcBecT-NA"
 # Connect to Google Drive using the Secrets
 try:
     if "gcp_service_account" in st.secrets:
-        # 1. Unpack the "vacuum-sealed" string into a dictionary
-        info = json.loads(st.secrets["gcp_service_account"])
+        # We add .replace to handle the backslash escape error
+        raw_json = st.secrets["gcp_service_account"].replace('\\n', '\n')
+        info = json.loads(raw_json)
         
-        # 2. Use the unpacked info to create credentials
         creds = service_account.Credentials.from_service_account_info(info)
         drive_service = build('drive', 'v3', credentials=creds)
     else:
         st.error("Google Secrets not found. Please check Streamlit Cloud Settings.")
-except Exception as e:
-    st.error(f"Authentication Error: {e}")
 except Exception as e:
     st.error(f"Authentication Error: {e}")
 
@@ -171,6 +169,7 @@ if st.sidebar.button("🗑️ RESET ALL DATA"):
     if os.path.exists(SAVED_DATA): os.remove(SAVED_DATA)
     st.session_state.clear()
     st.rerun()
+
 
 
 
