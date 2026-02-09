@@ -35,11 +35,19 @@ except Exception as e:
 def upload_to_drive(file_content, file_name, folder_id):
     try:
         file_metadata = {'name': file_name, 'parents': [folder_id]}
-        media = MediaIoBaseUpload(BytesIO(file_content), mimetype='image/jpeg')
-        drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+        media = MediaIoBaseUpload(BytesIO(file_content), mimetype='image/jpeg', resumable=True)
+        
+        request = drive_service.files().create(
+            body=file_metadata, 
+            media_body=media, 
+            fields='id',
+            supportsAllDrives=True
+        )
+        response = request.execute()
         return True
     except Exception as e:
-        st.error(f"Drive Upload Failed: {e}")
+        # This will force the REAL error to show up in a red box on your phone
+        st.sidebar.error(f"⚠️ DRIVE ERROR: {str(e)}")
         return False
 
 # Initialize session memory
@@ -158,6 +166,7 @@ if st.sidebar.button("🗑️ RESET ALL DATA"):
     if os.path.exists(SAVED_DATA): os.remove(SAVED_DATA)
     st.session_state.clear()
     st.rerun()
+
 
 
 
