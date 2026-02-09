@@ -24,24 +24,15 @@ FOLDER_ID = "1x1qYp-qT3849DUAxLi5msViHcBecT-NA"
 # Connect to Google Drive using the Secrets
 try:
     if "gcp_service_account" in st.secrets:
-        # 1. Pull the secret exactly as it is
-        info_str = st.secrets["gcp_service_account"]
+        # 1. Grab the dictionary exactly as Streamlit provides it
+        # No more json.loads, no more complex cleaning
+        info = dict(st.secrets["gcp_service_account"])
         
-        # 2. Use a raw-string interpretation to bypass the 'Invalid \escape'
-        # This treats every backslash as just a piece of text
-        try:
-            info = json.loads(info_str, strict=False)
-        except:
-            # If the first way fails, we force-clean the backslashes manually
-            import re
-            clean_str = re.sub(r'(?<!\\)\\(?!["\\/bfnrt]|u[0-9a-fA-F]{4})', r'\\\\', info_str)
-            info = json.loads(clean_str, strict=False)
-        
-        # 3. Fix the private key's line breaks specifically
+        # 2. The ONLY "safety" needed: ensure line breaks are real
         if "private_key" in info:
-            # This handles both ways the key might be stored
-            info["private_key"] = info["private_key"].replace("\\n", "\n").replace("\\\\n", "\n")
-            
+             info["private_key"] = info["private_key"].replace("\\n", "\n")
+
+        # 3. Pass the clean info to Google
         creds = service_account.Credentials.from_service_account_info(info)
         drive_service = build('drive', 'v3', credentials=creds)
     else:
@@ -183,6 +174,7 @@ if st.sidebar.button("🗑️ RESET ALL DATA"):
     if os.path.exists(SAVED_DATA): os.remove(SAVED_DATA)
     st.session_state.clear()
     st.rerun()
+
 
 
 
