@@ -27,21 +27,21 @@ SAVED_DATA = "field_log.csv"
 FOLDER_ID = "1x1qYp-qT3849DUAxLi5msViHcBecT-NA" 
 
 # Connect to Google Drive using the Secrets
+# Connect to Google Drive using the Secrets
 try:
     if "gcp_service_account" in st.secrets:
+        # Step 1: Convert the secret to a standard dictionary
         info = dict(st.secrets["gcp_service_account"])
         
-        # Decode the Base64 key we put in the secrets box
-        if "private_key_b64" in info:
-            decoded_bytes = base64.b64decode(info["private_key_b64"])
-            info["private_key"] = decoded_bytes.decode("utf-8")
-        
+        # Step 2: Connect to Google
         creds = service_account.Credentials.from_service_account_info(info)
         drive_service = build('drive', 'v3', credentials=creds)
     else:
-        st.error("Google Secrets not found. Please check Streamlit Cloud Settings.")
+        st.error("Google Secrets not found.")
+        drive_service = None
 except Exception as e:
     st.error(f"Authentication Error: {e}")
+    drive_service = None
 
 # This is where the code continues...
 
@@ -179,6 +179,7 @@ if st.sidebar.button("🗑️ RESET ALL DATA"):
     if os.path.exists(SAVED_DATA): os.remove(SAVED_DATA)
     st.session_state.clear()
     st.rerun()
+
 
 
 
