@@ -4,6 +4,7 @@ import pandas as pd
 import folium
 from streamlit_folium import st_folium
 import os
+import json
 from io import BytesIO
 import zipfile
 from datetime import datetime
@@ -23,12 +24,16 @@ FOLDER_ID = "1x1qYp-qT3849DUAxLi5msViHcBecT-NA"
 # Connect to Google Drive using the Secrets
 try:
     if "gcp_service_account" in st.secrets:
-        # Load credentials from Streamlit Secrets
-        info = dict(st.secrets["gcp_service_account"])
+        # 1. Unpack the "vacuum-sealed" string into a dictionary
+        info = json.loads(st.secrets["gcp_service_account"])
+        
+        # 2. Use the unpacked info to create credentials
         creds = service_account.Credentials.from_service_account_info(info)
         drive_service = build('drive', 'v3', credentials=creds)
     else:
         st.error("Google Secrets not found. Please check Streamlit Cloud Settings.")
+except Exception as e:
+    st.error(f"Authentication Error: {e}")
 except Exception as e:
     st.error(f"Authentication Error: {e}")
 
@@ -166,6 +171,7 @@ if st.sidebar.button("🗑️ RESET ALL DATA"):
     if os.path.exists(SAVED_DATA): os.remove(SAVED_DATA)
     st.session_state.clear()
     st.rerun()
+
 
 
 
