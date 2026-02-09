@@ -19,15 +19,19 @@ from googleapiclient.http import MediaIoBaseUpload
 st.set_page_config(page_title="Troy's Map", layout="wide")
 SAVED_DATA = "field_log.csv"
 
+# --- 1. CONFIG & DRIVE SETUP ---
+st.set_page_config(page_title="Troy's Map", layout="wide")
+SAVED_DATA = "field_log.csv"
+
 # ⚠️ PASTE YOUR FOLDER ID HERE ⚠️
 FOLDER_ID = "1x1qYp-qT3849DUAxLi5msViHcBecT-NA" 
 
-# ... inside your try block ...
+# Connect to Google Drive using the Secrets
 try:
     if "gcp_service_account" in st.secrets:
         info = dict(st.secrets["gcp_service_account"])
         
-        # This is the magic part: Decodes the flat string back into a real key
+        # Decode the Base64 key we put in the secrets box
         if "private_key_b64" in info:
             decoded_bytes = base64.b64decode(info["private_key_b64"])
             info["private_key"] = decoded_bytes.decode("utf-8")
@@ -35,9 +39,11 @@ try:
         creds = service_account.Credentials.from_service_account_info(info)
         drive_service = build('drive', 'v3', credentials=creds)
     else:
-        st.error("Google Secrets not found.")
+        st.error("Google Secrets not found. Please check Streamlit Cloud Settings.")
 except Exception as e:
-    st.error(f"Authentication Error: {e}"
+    st.error(f"Authentication Error: {e}")
+
+# This is where the code continues...
 
 def upload_to_drive(file_content, file_name, folder_id):
     try:
@@ -173,6 +179,7 @@ if st.sidebar.button("🗑️ RESET ALL DATA"):
     if os.path.exists(SAVED_DATA): os.remove(SAVED_DATA)
     st.session_state.clear()
     st.rerun()
+
 
 
 
