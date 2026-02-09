@@ -24,21 +24,14 @@ FOLDER_ID = "1x1qYp-qT3849DUAxLi5msViHcBecT-NA"
 # Connect to Google Drive using the Secrets
 try:
     if "gcp_service_account" in st.secrets:
-        # 1. Convert AttrDict to a standard Python dictionary
+        # Step 1: Convert AttrDict to a plain Dictionary
         info = dict(st.secrets["gcp_service_account"])
         
-        # 2. Fix potential line break/padding issues surgically
-        if "private_key" in info:
-            # This handles both literal and escaped newlines
-            p_key = info["private_key"]
-            p_key = p_key.replace("\\n", "\n")
-            # Ensure the key starts and ends cleanly
-            info["private_key"] = p_key.strip()
-
+        # Step 2: Use credentials exactly as they are in the box
         creds = service_account.Credentials.from_service_account_info(info)
         drive_service = build('drive', 'v3', credentials=creds)
     else:
-        st.error("Google Secrets not found. Please check Streamlit Cloud Settings.")
+        st.error("Google Secrets not found.")
 except Exception as e:
     st.error(f"Authentication Error: {e}")
 
@@ -176,6 +169,7 @@ if st.sidebar.button("🗑️ RESET ALL DATA"):
     if os.path.exists(SAVED_DATA): os.remove(SAVED_DATA)
     st.session_state.clear()
     st.rerun()
+
 
 
 
